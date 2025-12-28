@@ -1,12 +1,48 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
+  <meta charset="utf-8" />
   <title>Space Zero</title>
-  <meta name="description" content="Space Zero — baseline / empty state">
+  <meta name="description" content="Space Zero — baseline / empty state" />
+
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+    }
+
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #ffffff;
+      color: #000000;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont,
+                   "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    .container {
+      text-align: center;
+    }
+
+    h1 {
+      font-size: clamp(2.5rem, 6vw, 4rem);
+      font-weight: 600;
+      margin: 0;
+    }
+
+    p {
+      margin-top: 0.75rem;
+      font-size: 1rem;
+      opacity: 0.6;
+    }
+  </style>
 </head>
+
 <body>
-  <h1>Space Zero</h1>
-  <p>baseline / empty state</p>
+  <div class="container">
+    <h1>Space Zero</h1>
+    <p>baseline / empty state</p>
+  </div>
 </body>
 </html>
