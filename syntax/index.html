@@ -5,220 +5,409 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Escape Mr. H</title>
     <style>
+        /* 1. RESET & FULL SCREEN */
         body {
             margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: #202124;
-            font-family: 'Courier New', Courier, monospace;
-            color: white;
             overflow: hidden;
+            background-color: #050505; 
+            font-family: 'Courier New', monospace;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            width: 100vw;
         }
-        canvas {
-            border-bottom: 2px solid white;
-            background-color: #333;
-            box-shadow: 0 0 20px rgba(0,0,0,0.5);
-        }
-        h1 { margin-bottom: 10px; font-size: 20px; color: #00ff00; }
-        p { font-size: 14px; color: #aaa; }
 
-        /* MODAL STYLES (The Pop-up) */
-        #startModal, #gameOverScreen {
+        /* 2. GAME CONTAINER */
+        #game-container {
+            position: relative;
+            width: 800px;
+            height: 400px;
+            background-color: #1e1e1e;
+            border: 4px solid #333;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
+            transform-origin: center center;
+        }
+
+        canvas { display: block; width: 100%; height: 100%; }
+
+        /* 3. UI OVERLAYS */
+        .overlay {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.9); /* Dark overlay */
             display: flex;
             flex-direction: column;
-            justify-content: center;
             align-items: center;
-            z-index: 10; /* On top of everything */
-        }
-        
-        /* Hide Game Over by default */
-        #gameOverScreen { display: none; }
-
-        .modal-content {
-            background: #1e1e1e;
-            padding: 40px;
-            border: 2px solid #00ff00; /* Hacker Green border */
-            border-radius: 8px;
-            text-align: center;
-            max-width: 500px;
-            box-shadow: 0 0 30px rgba(0, 255, 0, 0.2);
+            justify-content: center;
+            z-index: 50; 
+            background: rgba(10, 10, 10, 0.98);
         }
 
-        h2 { margin-top: 0; color: #00ff00; }
-        .story-text { font-size: 16px; line-height: 1.6; color: #ddd; margin-bottom: 25px; }
-        
+        /* TYPOGRAPHY */
+        h1 { margin: 0 0 15px 0; font-size: 28px; letter-spacing: 2px; text-shadow: 0 0 10px; }
+        p { color: #ccc; margin: 6px 0; font-size: 16px; text-align: center; line-height: 1.4; }
+        .green { color: #0f0; text-shadow: 0 0 10px #0f0; }
+        .red { color: #f44747; text-shadow: 0 0 10px red; }
+        .separator { width: 60%; height: 1px; background: #333; margin: 15px 0; }
+        .controls-hint { margin-top: 15px; font-size: 14px !important; color: #666 !important; border-top: 1px solid #333; padding-top: 10px; }
+
+        /* BUTTONS */
         button {
-            padding: 12px 30px;
-            font-size: 18px;
-            cursor: pointer;
-            background: #00ff00;
-            color: black;
             border: none;
+            padding: 15px 40px;
+            font-size: 20px;
             font-weight: bold;
             font-family: inherit;
-            transition: transform 0.1s;
+            cursor: pointer;
+            margin-top: 25px;
+            text-transform: uppercase;
+            position: relative;
+            z-index: 100; 
+            pointer-events: auto; 
         }
-        button:hover { transform: scale(1.05); }
-        button:active { transform: scale(0.95); }
+        
+        .btn-green { background: #0f0; color: black; box-shadow: 0 0 15px rgba(0,255,0,0.4); }
+        .btn-green:hover { background: white; transform: scale(1.05); }
+        
+        .btn-red { background: red; color: white; box-shadow: 0 0 15px rgba(255,0,0,0.4); }
+        .btn-red:hover { background: #ff5555; transform: scale(1.05); }
 
+        /* HUD */
+        #hud {
+            position: absolute;
+            top: 20px; right: 25px;
+            color: white; font-weight: bold; font-size: 22px;
+            z-index: 10; pointer-events: none;
+        }
+
+        /* VISIBILITY HELPERS */
+        #start-screen { border: 2px solid #0f0; }
+        #game-over-screen { display: none; border: 2px solid red; }
     </style>
 </head>
 <body>
 
-    <h1>RUNTIME EXCEPTION: MR. H DETECTED</h1>
-    <p>Press SPACE or TAP to Jump</p>
-    <canvas id="gameCanvas"></canvas>
+    <div id="game-container">
+        <div id="hud">SCORE: <span id="score">0</span></div>
+        <canvas id="gameCanvas" width="800" height="400"></canvas>
 
-    <div id="startModal">
-        <div class="modal-content">
-            <h2>⚠ SYNTAX ERROR DETECTED</h2>
-            <div class="story-text">
-                <p>LOCATION: <strong>Computer Lab 2</strong></p>
-                <p>STATUS: <strong>Compiling...</strong></p>
-                <hr style="border-color: #333; margin: 15px 0;">
-                <p>You forgot to put a semicolon on line 42.</p>
-                <p>The compiler is silent... but <b>Mr. H</b> is not.</p>
-                <p>He is approaching rapidly to "correct" your code.</p>
-            </div>
-            <button onclick="startGame()">RUN (literally)</button>
+        <div id="start-screen" class="overlay" style="display: flex;">
+            <h1 class="green">⚠ SYNTAX ERROR DETECTED</h1>
+            
+            <p>LOCATION: Classroom 206</p>
+            <p>STATUS: Compiling...</p>
+            
+            <div class="separator"></div>
+
+            <p>You forgot a semicolon on line 42.</p>
+            <p>The compiler is silent... but <span class="red" style="font-weight: bold;">Mr. H</span> is not.</p>
+            
+            <p style="color: #888; font-style: italic; font-size: 14px; margin-top: 10px;">
+                "He is walking down the aisle, tapping a coiled Ethernet cable against his leg..."
+            </p>
+
+            <p class="controls-hint">[SPACE] Jump &nbsp;&nbsp; [DOWN] Duck</p>
+            
+            <button class="btn-green" onclick="startGame()">RUN (literally)</button>
         </div>
-    </div>
 
-    <div id="gameOverScreen">
-        <div class="modal-content" style="border-color: red;">
-            <h2 style="color: red;">COMPILATION FAILED</h2>
-            <p>Mr. H caught you.</p>
-            <p>"See me after class."</p>
-            <h3 id="finalScore">Score: 0</h3>
-            <button style="background: red; color: white;" onclick="resetGame()">Retry Build</button>
+        <div id="game-over-screen" class="overlay">
+            <h1 class="red">COMPILATION FAILED</h1>
+            
+            <p style="color: #ccc;">Mr. H caught you.</p>
+            
+            <p style="font-style: italic; color: #fff; margin: 20px 0; font-size: 18px; line-height: 1.5;">
+                "Well, well... looks like it's time for a <span style="color:#ffaa00">lovely little exam</span>."
+            </p>
+
+            <p style="color: #f44747; font-weight: bold; font-size: 14px; margin-bottom: 20px;">
+                *WHACK!* (He smashes an Ethernet cable against the desk)
+            </p>
+
+            <p style="font-size: 20px; font-weight: bold; color: white;">
+                Current Grade: <span id="grade-letter" style="color:red">F</span> (<span id="final-score">0</span> pts)
+            </p>
+            
+            <button class="btn-red" onclick="startGame()">Retry Build</button>
         </div>
     </div>
 
     <script>
+        // --- 1. SETUP ---
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
+        const container = document.getElementById('game-container');
 
-        canvas.width = 800;
-        canvas.height = 300;
-
-        let gameRunning = false; // Stopped by default
+        // --- 2. VARIABLES ---
+        let gameRunning = false;
+        let lastTime = 0;
         let score = 0;
-        let gameSpeed = 5;
-        let frameCount = 0;
-        let animationId; // To control the loop
+        let speedMultiplier = 1.0;
 
-        const student = {
-            x: 150, y: 200, width: 30, height: 50, color: '#00ccff',
-            dy: 0, jumpForce: 12, gravity: 0.6, grounded: false,
-            jump: function() {
-                if (this.grounded) { this.dy = -this.jumpForce; this.grounded = false; }
-            },
-            update: function() {
-                this.y += this.dy;
-                if (this.y + this.height < canvas.height) {
-                    this.dy += this.gravity; this.grounded = false;
-                } else {
-                    this.dy = 0; this.grounded = true; this.y = canvas.height - this.height;
-                }
-                this.draw();
-            },
-            draw: function() {
-                ctx.fillStyle = this.color; ctx.fillRect(this.x, this.y, this.width, this.height);
-                ctx.fillStyle = 'black'; ctx.fillRect(this.x + 20, this.y + 10, 5, 5);
-            }
+        // Physics
+        const BASE_SPEED = 400; 
+        const GRAVITY = 3000;    
+        const JUMP_FORCE = -820; 
+
+        const player = { 
+            x: 100, y: 300, 
+            w: 30, h: 40, 
+            originalH: 40, crouchH: 20,
+            vy: 0, grounded: true, color: '#4ec9b0', crouching: false 
         };
-
-        const mrH = {
-            x: 20, y: 190, width: 40, height: 60, color: '#ff4444',
-            draw: function() {
-                ctx.fillStyle = this.color; ctx.fillRect(this.x, this.y, this.width, this.height);
-                ctx.fillStyle = 'white'; 
-                ctx.fillRect(this.x + 10, this.y + 10, 8, 8); ctx.fillRect(this.x + 25, this.y + 10, 8, 8);
-                ctx.fillStyle = 'black'; ctx.beginPath(); ctx.moveTo(this.x + 5, this.y + 8); ctx.lineTo(this.x + 20, this.y + 15); ctx.stroke();
-            }
-        };
-
+        
+        const teacher = { x: 20, y: 280, w: 50, h: 60, color: '#f44747', offsetY: 0 };
         let obstacles = [];
+        let spawnTimer = 0;
 
-        function spawnObstacle() {
-            let h = 30 + Math.random() * 20;
-            obstacles.push({ x: canvas.width, y: canvas.height - h, width: 20, height: h, color: '#aaaaaa' });
+        // --- 3. START ---
+        window.startGame = function() {
+            document.getElementById('start-screen').style.display = 'none';
+            document.getElementById('game-over-screen').style.display = 'none';
+
+            gameRunning = true;
+            score = 0;
+            speedMultiplier = 1.0;
+            obstacles = [];
+            player.y = 300;
+            player.vy = 0;
+            lastTime = performance.now();
+
+            requestAnimationFrame(gameLoop);
+        };
+
+        // --- 4. SCALING ---
+        function resize() {
+            const scaleX = (window.innerWidth - 40) / 800;
+            const scaleY = (window.innerHeight - 40) / 400;
+            const scale = Math.min(scaleX, scaleY);
+            if (scale > 0) container.style.transform = `scale(${scale})`;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        // --- 5. LOOP ---
+        function gameLoop(timestamp) {
+            if (!gameRunning) return;
+            const dt = (timestamp - lastTime) / 1000;
+            lastTime = timestamp;
+            update(dt);
+            draw();
+            requestAnimationFrame(gameLoop);
         }
 
-        function updateObstacles() {
-            for (let i = 0; i < obstacles.length; i++) {
-                let obs = obstacles[i];
-                obs.x -= gameSpeed;
-                ctx.fillStyle = obs.color; ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
-                
-                // Draw ";" or "{}" on obstacles for flavor
-                ctx.fillStyle = "black"; ctx.font = "16px monospace"; 
-                ctx.fillText(i % 2 == 0 ? ";" : "{}", obs.x + 2, obs.y + 20);
+        // --- 6. UPDATE ---
+        function update(dt) {
+            if (dt > 0.1) return;
 
-                if (student.x < obs.x + obs.width && student.x + student.width > obs.x &&
-                    student.y < obs.y + obs.height && student.y + student.height > obs.y) {
+            speedMultiplier += 0.05 * dt;
+            const currentSpeed = BASE_SPEED * speedMultiplier;
+
+            score += 10 * dt;
+            document.getElementById('score').innerText = Math.floor(score);
+
+            // CROUCH
+            if (keys['ArrowDown'] || keys['KeyS']) {
+                if (!player.crouching) {
+                    player.crouching = true;
+                    player.h = player.crouchH;
+                    player.y += (player.originalH - player.crouchH);
+                    if (!player.grounded) player.vy += 2000; 
+                }
+            } else {
+                if (player.crouching) {
+                    player.crouching = false;
+                    player.y -= (player.originalH - player.crouchH);
+                    player.h = player.originalH;
+                }
+            }
+
+            // PHYSICS
+            player.vy += GRAVITY * dt;
+            player.y += player.vy * dt;
+
+            let groundY = 350 - player.h;
+            if (player.y > groundY) {
+                player.y = groundY;
+                player.vy = 0;
+                player.grounded = true;
+            } else {
+                player.grounded = false;
+            }
+
+            // JUMP
+            if ((keys['Space'] || keys['ArrowUp']) && player.grounded && !player.crouching) {
+                player.vy = JUMP_FORCE;
+            }
+
+            teacher.offsetY = Math.sin(Date.now() / 100) * 8;
+
+            // SPAWN
+            spawnTimer -= dt;
+            if (spawnTimer <= 0) {
+                spawnObstacle();
+                spawnTimer = Math.random() * 0.7 + 0.8; 
+            }
+
+            for (let i = obstacles.length - 1; i >= 0; i--) {
+                let obs = obstacles[i];
+                obs.x -= currentSpeed * dt;
+
+                // COLLISION
+                if (
+                    player.x < obs.x + obs.w - 5 &&
+                    player.x + player.w > obs.x + 5 &&
+                    player.y < obs.y + obs.h - 5 &&
+                    player.y + player.h > obs.y + 5
+                ) {
                     gameOver();
                 }
-                if (obs.x + obs.width < 0) {
-                    obstacles.splice(i, 1); score++; i--;
+
+                if (obs.x + obs.w < 0) obstacles.splice(i, 1);
+            }
+        }
+
+        // --- 7. SPAWN LOGIC ---
+        function spawnObstacle() {
+            // Chance is 20% (0.8 threshold)
+            const isAir = Math.random() > 0.8; 
+            
+            const sizeMult = Math.random() * 0.3 + 0.8;
+            
+            // C# MISTAKES LIST
+            const groundSymbols = [";", "}", "{", "||", "&&", "??", "=>"];
+            const airSymbols = [
+                "console",   "readline",  "Writeline", "viod",      
+                "retrun",    "publc",     "boolean",   "Int",       
+                "String",    "NuLL"       
+            ];
+            
+            const text = isAir 
+                ? airSymbols[Math.floor(Math.random() * airSymbols.length)]
+                : groundSymbols[Math.floor(Math.random() * groundSymbols.length)];
+            
+            let textH = 40 * sizeMult; 
+            
+            // DYNAMIC WIDTH CALCULATION
+            ctx.save(); 
+            if (isAir) {
+                 ctx.font = 'bold 20px Consolas';
+            } else {
+                 ctx.font = `bold ${textH}px Consolas`;
+            }
+            const measuredW = ctx.measureText(text).width;
+            ctx.restore(); 
+
+            // Width = Measured + Padding
+            let w = Math.max(35 * sizeMult, measuredW + 15);
+            
+            let h, y;
+
+            if (isAir) {
+                // PHANTOM HITBOX LOGIC: 1000px tall pillar
+                h = 1000; 
+                y = 325 - h;
+            } else {
+                h = textH;
+                y = 350 - h;
+            }
+
+            obstacles.push({ x: 800, y: y, w: w, h: h, text: text, isAir: isAir, textH: textH || h });
+        }
+
+        // --- 8. DRAW ---
+        function draw() {
+            // BG
+            ctx.fillStyle = '#1e1e1e';
+            ctx.fillRect(0, 0, 800, 400);
+            // Floor
+            ctx.fillStyle = '#007acc';
+            ctx.fillRect(0, 350, 800, 50);
+
+            // Player
+            ctx.fillStyle = player.color;
+            ctx.fillRect(player.x, player.y, player.w, player.h);
+            
+            // Face
+            ctx.fillStyle = '#111';
+            if (player.crouching) {
+                ctx.fillRect(player.x + 20, player.y + 5, 5, 5); 
+            } else {
+                ctx.fillRect(player.x + 20, player.y + 8, 5, 5);
+                ctx.fillStyle = '#333';
+                ctx.fillRect(player.x - 5, player.y + 5, 5, 25);
+            }
+
+            // Teacher
+            ctx.fillStyle = teacher.color;
+            ctx.fillRect(teacher.x, teacher.y + teacher.offsetY, teacher.w, teacher.h);
+            ctx.fillStyle = 'white'; 
+            ctx.fillRect(teacher.x + 30, teacher.y + 15 + teacher.offsetY, 10, 5);
+
+            // Obstacles
+            for (let obs of obstacles) {
+                
+                if (obs.isAir) {
+                    // --- DRAWING THE "FAKE" FLOATING BOX ---
+                    const bottomY = obs.y + obs.h;
+                    const visualH = 45;
+                    const visualY = bottomY - visualH;
+
+                    ctx.fillStyle = '#ffaa00'; // Bright Orange
+                    ctx.fillRect(obs.x, visualY, obs.w, visualH);
+
+                    // Draw text inside the box
+                    ctx.fillStyle = 'black';
+                    ctx.font = 'bold 20px Consolas';
+                    const textW = ctx.measureText(obs.text).width;
+                    const textX = obs.x + (obs.w - textW) / 2;
+                    ctx.fillText(obs.text, textX, bottomY - 15);
+                } else {
+                    // Normal Ground Obstacle
+                    ctx.fillStyle = '#ce9178';
+                    ctx.font = `bold ${obs.h}px Consolas`;
+                    const textW = ctx.measureText(obs.text).width;
+                    const textX = obs.x + (obs.w - textW) / 2;
+                    ctx.fillText(obs.text, textX, obs.y + obs.h - 5);
                 }
             }
         }
 
-        // --- NEW CONTROL FUNCTIONS ---
-
-        // Called when you click the "RUN" button on the pop-up
-        function startGame() {
-            document.getElementById('startModal').style.display = 'none';
-            gameRunning = true;
-            animate();
-        }
-
+        // --- 9. GAME OVER ---
         function gameOver() {
             gameRunning = false;
-            cancelAnimationFrame(animationId); // Stop the loop
-            document.getElementById('gameOverScreen').style.display = 'flex';
-            document.getElementById('finalScore').innerText = "Lines of Code Written: " + score;
-            mrH.x = student.x - 40; 
-            student.draw(); mrH.draw(); 
-        }
-
-        function resetGame() {
-            obstacles = []; score = 0; gameSpeed = 5; frameCount = 0;
-            student.y = 200; student.dy = 0; mrH.x = 20;
+            const finalScore = Math.floor(score);
+            let grade = "F"; let color = "red";
             
-            document.getElementById('gameOverScreen').style.display = 'none';
-            gameRunning = true;
-            animate();
+            if (finalScore >= 2000) { grade = "A"; color = "#0f0"; }
+            else if (finalScore >= 1500) { grade = "B"; color = "cyan"; }
+            else if (finalScore >= 1000) { grade = "C"; color = "yellow"; }
+            else if (finalScore >= 500) { grade = "D"; color = "orange"; }
+
+            document.getElementById('final-score').innerText = finalScore;
+            const gradeEl = document.getElementById('grade-letter');
+            gradeEl.innerText = grade;
+            gradeEl.style.color = color;
+
+            document.getElementById('game-over-screen').style.display = 'flex';
         }
 
-        function animate() {
-            if (!gameRunning) return;
-            animationId = requestAnimationFrame(animate);
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            frameCount++;
+        // --- 10. INPUTS ---
+        const keys = {};
+        window.addEventListener('keydown', e => {
+            keys[e.code] = true;
+            if(['Space', 'ArrowUp', 'ArrowDown'].includes(e.code) && gameRunning) e.preventDefault();
+        });
+        window.addEventListener('keyup', e => keys[e.code] = false);
+        window.addEventListener('touchstart', (e) => { 
+            if(!gameRunning) return;
+            if (e.touches[0].clientY < window.innerHeight / 2) keys['Space'] = true;
+            else keys['ArrowDown'] = true;
+        });
+        window.addEventListener('touchend', () => { keys['Space'] = false; keys['ArrowDown'] = false; });
 
-            mrH.draw();
-            student.update();
-
-            if (frameCount % 100 === 0) { spawnObstacle(); gameSpeed += 0.05; }
-            updateObstacles();
-
-            ctx.fillStyle = "white"; ctx.font = "20px Courier New"; 
-            ctx.fillText("Score: " + score, 650, 40);
-        }
-
-        // Input
-        document.addEventListener('keydown', function(e) { if (e.code === 'Space' || e.code === 'ArrowUp') student.jump(); });
-        document.addEventListener('touchstart', function() { student.jump(); });
-
+        // Init
+        draw();
     </script>
 </body>
 </html>
