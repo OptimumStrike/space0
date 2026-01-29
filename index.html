@@ -1,75 +1,224 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <title>Space Zero</title>
-  <meta name="description" content="Space Zero — baseline / empty state" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Escape Mr. H</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #202124;
+            font-family: 'Courier New', Courier, monospace;
+            color: white;
+            overflow: hidden;
+        }
+        canvas {
+            border-bottom: 2px solid white;
+            background-color: #333;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        }
+        h1 { margin-bottom: 10px; font-size: 20px; color: #00ff00; }
+        p { font-size: 14px; color: #aaa; }
 
-  <style>
-    html, body {
-      height: 100%;
-      margin: 0;
-    }
+        /* MODAL STYLES (The Pop-up) */
+        #startModal, #gameOverScreen {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.9); /* Dark overlay */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10; /* On top of everything */
+        }
+        
+        /* Hide Game Over by default */
+        #gameOverScreen { display: none; }
 
-    body {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: #ffffff;
-      color: #000000;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont,
-                   "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    }
+        .modal-content {
+            background: #1e1e1e;
+            padding: 40px;
+            border: 2px solid #00ff00; /* Hacker Green border */
+            border-radius: 8px;
+            text-align: center;
+            max-width: 500px;
+            box-shadow: 0 0 30px rgba(0, 255, 0, 0.2);
+        }
 
-    .container {
-      text-align: center;
-    }
+        h2 { margin-top: 0; color: #00ff00; }
+        .story-text { font-size: 16px; line-height: 1.6; color: #ddd; margin-bottom: 25px; }
+        
+        button {
+            padding: 12px 30px;
+            font-size: 18px;
+            cursor: pointer;
+            background: #00ff00;
+            color: black;
+            border: none;
+            font-weight: bold;
+            font-family: inherit;
+            transition: transform 0.1s;
+        }
+        button:hover { transform: scale(1.05); }
+        button:active { transform: scale(0.95); }
 
-    h1 {
-      font-size: clamp(2.5rem, 6vw, 4rem);
-      font-weight: 600;
-      margin: 0;
-    }
-
-    p {
-      margin-top: 0.75rem;
-      font-size: 1rem;
-      opacity: 0.6;
-    }
-
-  .credit {
-  position: fixed;
-  bottom: 24px;
-  right: 32px;
-  font-size: 0.85rem;
-  opacity: 0.6;
-}
-
-.credit a {
-  color: #0066cc;
-  text-decoration: none;
-}
-
-.credit a:hover {
-  text-decoration: underline;
-  opacity: 0.8;
-}
-
-  </style>
+    </style>
 </head>
-
 <body>
-  <div class="container">
-    <h1>Space Zero</h1>
-    <p>baseline / empty state</p>
-  </div>
-  
-  <div class="credit">
-  by <a href="https://github.com/OptimumStrike" target="_blank" rel="noopener">
-    OptimumStrike
-  </a>
-    
-</div>
 
+    <h1>RUNTIME EXCEPTION: MR. H DETECTED</h1>
+    <p>Press SPACE or TAP to Jump</p>
+    <canvas id="gameCanvas"></canvas>
+
+    <div id="startModal">
+        <div class="modal-content">
+            <h2>⚠ SYNTAX ERROR DETECTED</h2>
+            <div class="story-text">
+                <p>LOCATION: <strong>Computer Lab 2</strong></p>
+                <p>STATUS: <strong>Compiling...</strong></p>
+                <hr style="border-color: #333; margin: 15px 0;">
+                <p>You forgot to put a semicolon on line 42.</p>
+                <p>The compiler is silent... but <b>Mr. H</b> is not.</p>
+                <p>He is approaching rapidly to "correct" your code.</p>
+            </div>
+            <button onclick="startGame()">RUN (literally)</button>
+        </div>
+    </div>
+
+    <div id="gameOverScreen">
+        <div class="modal-content" style="border-color: red;">
+            <h2 style="color: red;">COMPILATION FAILED</h2>
+            <p>Mr. H caught you.</p>
+            <p>"See me after class."</p>
+            <h3 id="finalScore">Score: 0</h3>
+            <button style="background: red; color: white;" onclick="resetGame()">Retry Build</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        canvas.width = 800;
+        canvas.height = 300;
+
+        let gameRunning = false; // Stopped by default
+        let score = 0;
+        let gameSpeed = 5;
+        let frameCount = 0;
+        let animationId; // To control the loop
+
+        const student = {
+            x: 150, y: 200, width: 30, height: 50, color: '#00ccff',
+            dy: 0, jumpForce: 12, gravity: 0.6, grounded: false,
+            jump: function() {
+                if (this.grounded) { this.dy = -this.jumpForce; this.grounded = false; }
+            },
+            update: function() {
+                this.y += this.dy;
+                if (this.y + this.height < canvas.height) {
+                    this.dy += this.gravity; this.grounded = false;
+                } else {
+                    this.dy = 0; this.grounded = true; this.y = canvas.height - this.height;
+                }
+                this.draw();
+            },
+            draw: function() {
+                ctx.fillStyle = this.color; ctx.fillRect(this.x, this.y, this.width, this.height);
+                ctx.fillStyle = 'black'; ctx.fillRect(this.x + 20, this.y + 10, 5, 5);
+            }
+        };
+
+        const mrH = {
+            x: 20, y: 190, width: 40, height: 60, color: '#ff4444',
+            draw: function() {
+                ctx.fillStyle = this.color; ctx.fillRect(this.x, this.y, this.width, this.height);
+                ctx.fillStyle = 'white'; 
+                ctx.fillRect(this.x + 10, this.y + 10, 8, 8); ctx.fillRect(this.x + 25, this.y + 10, 8, 8);
+                ctx.fillStyle = 'black'; ctx.beginPath(); ctx.moveTo(this.x + 5, this.y + 8); ctx.lineTo(this.x + 20, this.y + 15); ctx.stroke();
+            }
+        };
+
+        let obstacles = [];
+
+        function spawnObstacle() {
+            let h = 30 + Math.random() * 20;
+            obstacles.push({ x: canvas.width, y: canvas.height - h, width: 20, height: h, color: '#aaaaaa' });
+        }
+
+        function updateObstacles() {
+            for (let i = 0; i < obstacles.length; i++) {
+                let obs = obstacles[i];
+                obs.x -= gameSpeed;
+                ctx.fillStyle = obs.color; ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
+                
+                // Draw ";" or "{}" on obstacles for flavor
+                ctx.fillStyle = "black"; ctx.font = "16px monospace"; 
+                ctx.fillText(i % 2 == 0 ? ";" : "{}", obs.x + 2, obs.y + 20);
+
+                if (student.x < obs.x + obs.width && student.x + student.width > obs.x &&
+                    student.y < obs.y + obs.height && student.y + student.height > obs.y) {
+                    gameOver();
+                }
+                if (obs.x + obs.width < 0) {
+                    obstacles.splice(i, 1); score++; i--;
+                }
+            }
+        }
+
+        // --- NEW CONTROL FUNCTIONS ---
+
+        // Called when you click the "RUN" button on the pop-up
+        function startGame() {
+            document.getElementById('startModal').style.display = 'none';
+            gameRunning = true;
+            animate();
+        }
+
+        function gameOver() {
+            gameRunning = false;
+            cancelAnimationFrame(animationId); // Stop the loop
+            document.getElementById('gameOverScreen').style.display = 'flex';
+            document.getElementById('finalScore').innerText = "Lines of Code Written: " + score;
+            mrH.x = student.x - 40; 
+            student.draw(); mrH.draw(); 
+        }
+
+        function resetGame() {
+            obstacles = []; score = 0; gameSpeed = 5; frameCount = 0;
+            student.y = 200; student.dy = 0; mrH.x = 20;
+            
+            document.getElementById('gameOverScreen').style.display = 'none';
+            gameRunning = true;
+            animate();
+        }
+
+        function animate() {
+            if (!gameRunning) return;
+            animationId = requestAnimationFrame(animate);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            frameCount++;
+
+            mrH.draw();
+            student.update();
+
+            if (frameCount % 100 === 0) { spawnObstacle(); gameSpeed += 0.05; }
+            updateObstacles();
+
+            ctx.fillStyle = "white"; ctx.font = "20px Courier New"; 
+            ctx.fillText("Score: " + score, 650, 40);
+        }
+
+        // Input
+        document.addEventListener('keydown', function(e) { if (e.code === 'Space' || e.code === 'ArrowUp') student.jump(); });
+        document.addEventListener('touchstart', function() { student.jump(); });
+
+    </script>
 </body>
 </html>
