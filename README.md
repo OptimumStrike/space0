@@ -4,6 +4,6 @@
 
 **baseline / empty state**
 
-This repository exists only to document the meaning behind the `space0.net` domain.
+A dual-purpose space for meaning behind space0.net and personal development projects.
 
 </div>
