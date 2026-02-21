@@ -3,30 +3,88 @@
 <head>
   <meta charset="utf-8" />
   <title>null</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
   <style>
+    :root {
+        --bg-color-light: #ffffff;
+        --bg-color-dark: #1a1a1a;
+        --text-color-light: #000000;
+        --text-color-dark: #f0f2f5;
+        --opacity-light: 0.6;
+        --opacity-dark: 0.7;
+    }
     html, body {
       height: 100%;
       margin: 0;
     }
     body {
+      --bg-color: var(--bg-color-light);
+      --text-color: var(--text-color-light);
+      --opacity: var(--opacity-light);
+
       display: flex;
       align-items: center;
       justify-content: center;
-      font-family: system-ui, sans-serif;
-      background: #ffffff;
-      color: #000;
+      font-family: 'Poppins', system-ui, sans-serif;
+      background: var(--bg-color);
+      color: var(--text-color);
       text-align: center;
+      transition: background 0.3s, color 0.3s;
+    }
+    body.dark-mode {
+        --bg-color: var(--bg-color-dark);
+        --text-color: var(--text-color-dark);
+        --opacity: var(--opacity-dark);
     }
     p {
-      opacity: 0.6;
+      opacity: var(--opacity);
       max-width: 480px;
+    }
+    .theme-switcher {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        cursor: pointer;
+        font-size: 1.5em;
+        user-select: none;
     }
   </style>
 </head>
 <body>
+  <div class="theme-switcher" id="theme-switcher">🌙</div>
   <p>
     This was the original idea.<br>
     Space as nothing. Nothing as zero.
   </p>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const themeSwitcher = document.getElementById('theme-switcher');
+        const body = document.body;
+
+        const setInitialTheme = () => {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                body.classList.add('dark-mode');
+                if (themeSwitcher) themeSwitcher.textContent = '☀️';
+            } else {
+                body.classList.remove('dark-mode');
+                if (themeSwitcher) themeSwitcher.textContent = '🌙';
+            }
+        };
+
+        if (themeSwitcher) {
+            themeSwitcher.addEventListener('click', () => {
+                body.classList.toggle('dark-mode');
+                const isDarkMode = body.classList.contains('dark-mode');
+                themeSwitcher.textContent = isDarkMode ? '☀️' : '🌙';
+                localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+            });
+        }
+
+        setInitialTheme();
+    });
+  </script>
 </body>
 </html>
