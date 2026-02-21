@@ -4,72 +4,123 @@
   <meta charset="utf-8" />
   <title>Space Zero</title>
   <meta name="description" content="Space Zero — baseline / empty state" />
-
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
   <style>
+    :root {
+        --bg-color-light: #ffffff;
+        --bg-color-dark: #1a1a1a;
+        --text-color-light: #000000;
+        --text-color-dark: #f0f2f5;
+        --link-color-light: #0066cc;
+        --link-color-dark: #8ab4f8;
+        --opacity-light: 0.6;
+        --opacity-dark: 0.7;
+    }
     html, body {
       height: 100%;
       margin: 0;
     }
-
     body {
+      --bg-color: var(--bg-color-light);
+      --text-color: var(--text-color-light);
+      --link-color: var(--link-color-light);
+      --opacity: var(--opacity-light);
+
       display: flex;
       align-items: center;
       justify-content: center;
-      background: #ffffff;
-      color: #000000;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont,
+      background: var(--bg-color);
+      color: var(--text-color);
+      font-family: 'Poppins', system-ui, -apple-system, BlinkMacSystemFont,
                    "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      transition: background 0.3s, color 0.3s;
     }
-
+    body.dark-mode {
+        --bg-color: var(--bg-color-dark);
+        --text-color: var(--text-color-dark);
+        --link-color: var(--link-color-dark);
+        --opacity: var(--opacity-dark);
+    }
     .container {
       text-align: center;
     }
-
     h1 {
       font-size: clamp(2.5rem, 6vw, 4rem);
       font-weight: 600;
       margin: 0;
     }
-
     p {
       margin-top: 0.75rem;
       font-size: 1rem;
-      opacity: 0.6;
+      opacity: var(--opacity);
     }
-
-  .credit {
-  position: fixed;
-  bottom: 24px;
-  right: 32px;
-  font-size: 0.85rem;
-  opacity: 0.6;
-}
-
-.credit a {
-  color: #0066cc;
-  text-decoration: none;
-}
-
-.credit a:hover {
-  text-decoration: underline;
-  opacity: 0.8;
-}
-
+    .credit {
+      position: fixed;
+      bottom: 24px;
+      right: 32px;
+      font-size: 0.85rem;
+      opacity: var(--opacity);
+    }
+    .credit a {
+      color: var(--link-color);
+      text-decoration: none;
+    }
+    .credit a:hover {
+      text-decoration: underline;
+    }
+    .theme-switcher {
+        position: absolute;
+        top: 20px;
+        right: 32px;
+        cursor: pointer;
+        font-size: 1.5em;
+        user-select: none;
+    }
   </style>
 </head>
 
 <body>
+  <div class="theme-switcher" id="theme-switcher">🌙</div>
   <div class="container">
     <h1>Space Zero</h1>
     <p>baseline / empty state</p>
   </div>
   
   <div class="credit">
-  by <a href="https://github.com/OptimumStrike" target="_blank" rel="noopener">
-    OptimumStrike
-  </a>
-    
-</div>
+    by <a href="https://github.com/OptimumStrike" target="_blank" rel="noopener">
+      OptimumStrike
+    </a>
+  </div>
 
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const themeSwitcher = document.getElementById('theme-switcher');
+        const body = document.body;
+
+        const setInitialTheme = () => {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                body.classList.add('dark-mode');
+                if (themeSwitcher) themeSwitcher.textContent = '☀️';
+            } else {
+                body.classList.remove('dark-mode');
+                if (themeSwitcher) themeSwitcher.textContent = '🌙';
+            }
+        };
+
+        if (themeSwitcher) {
+            themeSwitcher.addEventListener('click', () => {
+                body.classList.toggle('dark-mode');
+                const isDarkMode = body.classList.contains('dark-mode');
+                themeSwitcher.textContent = isDarkMode ? '☀️' : '🌙';
+                localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+            });
+        }
+
+        setInitialTheme();
+    });
+  </script>
 </body>
 </html>
